@@ -1,0 +1,112 @@
+let t=0;
+let gui;
+
+// Region Reverb
+let reverb;
+let rSec;
+let rDecayRate;
+let rReverse;
+// End region Reverb
+
+let delay;
+let filter;
+let mic;
+
+//Region Equalizer
+let eq;
+let eqBandIndex = 3;
+//EndRegion Equalizer
+
+//#region Distortion
+let distortion;
+let amount;
+let over; // string none, 2x or 4x
+//#endregion Distortion
+
+let panner;
+
+function setup() 
+{
+  createCanvas(windowWidth,windowHeight);
+  gui = createGui();
+  Buttons();
+  //InstancingEffects();
+  noStroke();
+  fill(82, 138, 227);
+}
+
+function draw() 
+{
+  background(0);
+  drawGui();
+}
+
+function Buttons()
+{
+  a = createButton("Play", 100,windowHeight - 100);
+  a.setStyle(
+  {
+    fillBg: color("#1461de"),
+    fillBgHover : color("#378cdb"),
+    fillBgActive: color("#37addb"),
+    fillLabel: color("#de7a10"),
+    fillLabelHover: color("#de8f10"),
+    fillLabelActive: color("#deae10"),
+    strokeBg: color("#dec310"),
+    rounding: 20,
+    textSize: 20
+  }
+  );
+  b = createButton("Stop", 250,windowHeight - 100);
+  b.setStyle(
+  {
+    fillBg: color("#ed0707"),
+    fillBgHover : color("#8f0606"),
+    fillBgActive: color("#ed0707"),
+    fillLabel: color("#000000"),
+    fillLabelHover: color("#000000"),
+    fillLabelActive: color("#000000"),
+    strokeBg: color("#912f19"),
+    rounding: 20,
+    textSize: 20
+  }
+  );
+  c = createButton("Reverb", 100,100);
+  c.setStyle(
+  {
+    fillBg: color("#70fdff"),
+    fillBgHover : color("#56eef0"),
+    fillBgActive: color("#20e5e8"),
+    fillLabel: color("#000000"),
+    fillLabelHover: color("#000000"),
+    fillLabelActive: color("#000000"),
+    strokeBg: color("#e89f20"),
+    rounding: 20,
+    textSize: 20
+  });
+  c = createCheckBox("Reverse", 100,200);
+  c.setStyle(
+  {
+    fillBg: color("#70fdff"),
+    fillBgHover : color("#56eef0"),
+    fillBgActive: color("#20e5e8"),
+    fillCheck: color("#000000"),
+    fillCheckHover: color("#000000"),
+    fillCheckActive: color("#000000"),
+    strokeBg: color("#e89f20"),
+    rounding: 20,
+  });
+  
+}
+
+
+//function InstancingEffects()
+//{
+//  reverb = new p5.Reverb();
+//  delay = new p5.Dealy();
+//  filter = new p5.BandPass();
+//  eq = new p5.EQ(eqBandIndex);
+//  distortion = new p5.Distortion(amount, over);
+//  panner = new p5.Panner3D();
+//  mic = new p5.AudioIn();
+//}

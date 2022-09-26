@@ -1,0 +1,73 @@
+  
+//εισαγωγή βιβλιοθηκης
+import processing.sound.*;
+//αρχικοποίηση μεταβλητής sine τύπου SinOsc
+SinOsc sine;
+//αρχικοποίηση μεταβλητής fft τύπου FFT
+FFT fft;
+//αρχικοποίηση μεταβλητής in τύπου AudioIn
+AudioIn in;
+//αρχικοποίηση μεταβλητής bands τύπου int με τιμη 512
+int bands = 512;
+//αρχικοποίηση πίνακα spectrum τύπου float με 512 θέσεις
+float[] spectrum = new float[bands];
+//αρχικοποίηση μεταβλητής max_f τύπου float
+float max_f;
+PImage img;
+color c;
+
+void setup() {
+  size(1000, 700);
+  img = loadImage("joconda.jpg");
+  //η fft μεταβλητή θα είναι μια νέα FFT  
+  fft = new FFT(this, bands);
+  //η in μεταβλητή θα είναι μια νέα AudioIn  
+  in = new AudioIn(this, 0);
+  //η sine μεταβλητή θα είναι μια νέα SinOsc. Μια γεννήτρια ημιτόνου
+  sine = new SinOsc(this);
+  // Ξεκίνα να παίρνεις ήχο απο το AudioIn δλδη το μικρόφωνο
+  in.start();
+  // Δώσε ως είσοδο στην fft την in δλδη το μικρόφωνο
+  fft.input(in);
+  //Ξεκίνα να παίζεις το ημίτονο
+  sine.play();
+}      
+
+void draw() { 
+  background(255);
+  //κάνε fft ανάλυση σε ότι πάρεις από το μικρόφωνο
+  //και οτι βρεις σε συχνότητα βάλτο στο πίνακα spectrum
+  fft.analyze(spectrum);//gemizei o pinakas
+ 
+
+  
+  //υπολόγισε τη πιο δυνατή συχνότητα του πίνακα spectrum
+  //πολλαπλασίασε τη επι 1000
+  //και βαλτη στη max_f
+  max_f = max(spectrum)*500;//ο αριθμος εδώ επηρεάζει την ευαισθησία (50 ~ 5000)
+  //Πολλαπλασίασε τη max_f επι 10 ακόμα και βάλτο σαν συχνοτητα στη sine
+  sine.freq(max_f*10);
+
+    //Διαδικασία pixelate 
+    img.loadPixels();// η img.loadPixels() διαβάζει όλα το χρώμα των pixels της εικόνας
+                     // και τα αποθηκέυει στο πίνακα pixels[]
+                     // το χρώμα είναι μια μεταβλητή color με τρια ορίσματα για R,G,B
+    
+    //Τρέχουμε μια διπλή for για να έχουμε i και j (x kai y) για κάθε pixel                 
+    for (int i = 0; i < img.width; i+=10) {
+          for (int j = 0; j < img.height; j+=10) {
+                //για κάθε pixel πάρε το χρώμα του (R,G,B) και βάλτα στη c
+                c = img.pixels[j*img.width + i];
+      
+                fill(c);//χρωμάτισε με χρώμα c το επόμενο σχήμα
+                //φτιάξε τετράγωνα στη θέση i,j τα οποία θα κινούνται τελικά αφού 
+                // επηρεάζονται από το random(-max_f/10,max_f) που είναι η πιο δυνατή
+                //συχνότητα του μικροφώνου όταν μιλάω
+                rect(1.6*i+random(-max_f/10,max_f),1.6*j+random(-max_f,max_f) , 30,30);
+          } 
+    }
+    //κάνε update τα pixel με τα χρώματά τους και εμφάνισε το αποτέλεσμα 
+   img.updatePixels();
+
+  
+}

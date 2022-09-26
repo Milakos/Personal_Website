@@ -1,0 +1,57 @@
+  
+//εισαγωγή βιβλιοθηκης
+import processing.sound.*;
+//αρχικοποίηση μεταβλητής sine τύπου SinOsc
+SinOsc sine;
+//αρχικοποίηση μεταβλητής fft τύπου FFT
+FFT fft;
+//αρχικοποίηση μεταβλητής in τύπου AudioIn
+AudioIn in;
+//αρχικοποίηση μεταβλητής bands τύπου int με τιμη 512
+int bands = 512;
+//αρχικοποίηση πίνακα spectrum τύπου float με 512 θέσεις
+float[] spectrum = new float[bands];
+//αρχικοποίηση μεταβλητής max_f τύπου float
+float max_f;
+
+void setup() {
+  size(1000, 700);
+  //η fft μεταβλητή θα είναι μια νέα FFT  
+  fft = new FFT(this, bands);
+  //η in μεταβλητή θα είναι μια νέα AudioIn  
+  in = new AudioIn(this, 0);
+  //η sine μεταβλητή θα είναι μια νέα SinOsc. Μια γεννήτρια ημιτόνου
+  sine = new SinOsc(this);
+  // Ξεκίνα να παίρνεις ήχο απο το AudioIn δλδη το μικρόφωνο
+  in.start();
+  // Δώσε ως είσοδο στην fft την in δλδη το μικρόφωνο
+  fft.input(in);
+  //Ξεκίνα να παίζεις το ημίτονο
+  sine.play();
+}      
+
+void draw() { 
+  //background(0,0,0);
+  //κάνε fft ανάλυση σε ότι πάρεις από το μικρόφωνο
+  //και οτι βρεις σε συχνότητα βάλτο στο πίνακα spectrum
+  fft.analyze(spectrum);//gemizei o pinakas
+
+
+  
+  //υπολόγισε τη πιο δυνατή συχνότητα του πίνακα spectrum
+  //πολλαπλασίασε τη επι 1000
+  //και βαλτη στη max_f
+  max_f = max(spectrum)*1000;
+  //Πολλαπλασίασε τη max_f επι 10 ακόμα και βάλτο σαν συχνοτητα στη sine
+  sine.freq(max_f*10);
+  //αν η μεγαλύτερη συχνότητα που βρήκες ειναι μεγαλύτερη απο 50 hz
+  //ζωγράφισε γραμμές οι οποίες εξαρτώνται απο τη random(max_f)
+  if (max_f > 50){
+      //η fill δίνει τα χρώματα των κύκλων
+     line (random(width)+random(max_f), random(height)+random(max_f),random(width)+ random(max_f),random(height)+ random(max_f));
+  }
+
+
+  
+}
+

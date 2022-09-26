@@ -1,0 +1,64 @@
+  
+//εισαγωγή βιβλιοθηκης
+import processing.sound.*;
+//αρχικοποίηση μεταβλητής sine τύπου SinOsc
+SinOsc sine;
+//αρχικοποίηση μεταβλητής fft τύπου FFT
+FFT fft;
+//αρχικοποίηση μεταβλητής in τύπου AudioIn
+AudioIn in;
+//αρχικοποίηση μεταβλητής bands τύπου int με τιμη 512
+int bands = 512;
+//αρχικοποίηση πίνακα spectrum τύπου float με 512 θέσεις
+float[] spectrum = new float[bands];
+//αρχικοποίηση μεταβλητής max_f τύπου float
+float max_f;
+
+void setup() {
+  size(1000, 700);
+  //η fft μεταβλητή θα είναι μια νέα FFT  
+  fft = new FFT(this, bands);
+  //η in μεταβλητή θα είναι μια νέα AudioIn  
+  in = new AudioIn(this, 0);
+  //η sine μεταβλητή θα είναι μια νέα SinOsc. Μια γεννήτρια ημιτόνου
+  sine = new SinOsc(this);
+  // Ξεκίνα να παίρνεις ήχο απο το AudioIn δλδη το μικρόφωνο
+  in.start();
+  // Δώσε ως είσοδο στην fft την in δλδη το μικρόφωνο
+  fft.input(in);
+  //Ξεκίνα να παίζεις το ημίτονο
+  sine.play();
+}      
+
+void draw() { 
+  background(255,0,0);
+  //κάνε fft ανάλυση σε ότι πάρεις από το μικρόφωνο
+  //και οτι βρεις σε συχνότητα βάλτο στο πίνακα spectrum
+  fft.analyze(spectrum);//gemizei o pinakas
+
+
+  
+  //υπολόγισε τη πιο δυνατή συχνότητα του πίνακα spectrum
+  //πολλαπλασίασε τη επι 1000
+  //και βαλτη στη max_f
+  max_f = max(spectrum)*1000;
+  //Πολλαπλασίασε τη max_f επι 10 ακόμα και βάλτο σαν συχνοτητα στη sine
+  sine.freq(max_f*10);
+  //γεμισε με διπλη for το καμβα με κύκλους.
+  //κάθε κύκλος έχει x = a + random(max_f) και y = b + random(max_f)
+  //τα α και β ειναι σταθερα. αν βγαλετε τα random οι κύκλοι είναι ακινητοι.
+  //τα random(max_f) δίνουν κινηση στους κύκλους ανάλογα
+  //με τη συχνότητα που υπολογίσαμε παραπάνω
+  for(int a = 0 ; a < width ; a+=30){
+    for(int b = 0 ; b < height ; b+=30){
+      //η fill δίνει τα χρώματα των κύκλων
+      fill (a,b,max_f*2);
+     ellipse (a + random(max_f), b + random(max_f) , 20,20);
+
+    }
+  }
+
+
+  
+}
+

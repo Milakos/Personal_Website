@@ -1,0 +1,396 @@
+let gui;
+
+// #region boolCheck
+playing = false;
+rverbPlaying = false;
+delayPlaying = false;
+let distPlaying = false;
+// #endregion boolCheck
+
+// #region Reverb
+let reverb;
+let x = 0;
+let y = 0;
+let z =0;
+// #endregion Reverb
+
+// #region Delay
+let delay;
+let dt;
+let feedback;
+// #endregion Delay
+
+let mic;
+let sound;
+
+//#region Equalizer
+let filterFreq;
+let res;
+//#endregion Equalizer
+
+//#region Distortion
+let distortion;
+let amount;
+let over; // string none, 2x or 4x
+//#endregion Distortion
+
+//#region Pan
+let panner;
+let XPos;
+let YPos;
+let timePan;
+// #endregion Pan
+
+function preload()
+{
+  soundFormats("wav");
+  sound = loadSound("s.wav");
+}
+function setup() 
+{
+  playing = false;
+  rverbPlaying = false;
+  distPlaying = false;
+  delayPlaying = false;
+
+  InstancingEffects();
+  createCanvas(windowWidth,windowHeight);
+  gui = createGui();
+  gui.loadStyle("blue");
+  Buttons();
+  noStroke();
+  fill(82, 138, 227); 
+}
+function draw() 
+{
+  background(0);
+  drawGui();
+  music();
+}
+// Mixer
+function music()
+{
+  // Play //
+  if(playing == false)
+  {
+    if(a.isPressed && playing == false)
+    {
+      playing = true;
+      sound.loop();
+    }
+  }
+  // Stop //
+  if (b.isPressed && playing == true)
+  {
+    sound.stop();
+    playing = false;
+  }
+  //Verb Button
+  if (c.isPressed && rverbPlaying == false && playing == true )
+  {
+    Verb();
+  }
+  else if (c.isPressed && rverbPlaying == true && playing == true) 
+  {
+    DiscVerb();
+  }
+  // Dist Button
+  if(g.isPressed && playing == true && distPlaying == false)
+  {
+    Dist();
+  }
+  else if (g.isPressed && playing == true && distPlaying == true)
+  {
+    QuitDistortion();
+  }
+  // Delay Buttons
+  if(del.isPressed && playing == true && delayPlaying == false)
+  {
+    let newDt;
+    let newFeed;
+    if (dell.isChanged)
+    {
+      newDt = dell.val;
+      dell.val = map(0,1,0,2);
+    } 
+    if (i.isChanged)
+    {
+      newFeed = i.val;
+      i.vall = map(0,1,0,3);
+    }
+    HandleDealy(dell.val, i.val);
+  }
+  else if (del.isPressed && playing == true && delayPlaying == true)
+  {
+    QuitDelay();
+  }
+  if (k.isPressed && playing == true)
+  {
+    HIghPass();
+  }
+}
+// Buttons
+function Buttons()
+{
+  a = createToggle("Play", windowWidth /2,windowHeight * 0 + 100);
+  a.setStyle(
+  {
+    fillBgOn: color("#1461de"),
+    fillBgOff: color("#1417de"),
+    fillBgHover : color("#378cdb"),
+    fillBgActive: color("#37addb"),
+    fillLabel: color("#de7a10"),
+    fillLabelHover: color("#de8f10"),
+    fillLabelOnActive: color("#deae10"),
+    strokeBgOn: color("#dec310"),
+    rounding: 20,
+    textSize: 20
+  }
+  );
+  b = createToggle("Stop", windowWidth /2,windowHeight * 0 + 200);
+  b.setStyle(
+  {
+    fillBgOn: color("#ed0707"),
+    fillBgOff: color("#8a0606"),
+    fillBgHover : color("#8f0606"),
+    fillBgActive: color("#ed0707"),
+    fillLabel: color("#000000"),
+    fillLabelHover: color("#000000"),
+    fillLabelActive: color("#000000"),
+    strokeBgOn: color("#912f19"),
+    rounding: 20,
+    textSize: 20
+  }
+  );
+  //Reverb
+  c = createToggle("Reverb",10 ,50);
+  c.setStyle(
+  {
+    fillBgOn: color("#70fdff"),
+    fillBgOff: color("#339d9e"),
+    fillBgHover : color("#56eef0"),
+    fillBgActive: color("#20e5e8"),
+    fillLabel: color("#000000"),
+    fillLabelHover: color("#000000"),
+    fillLabelActive: color("#000000"),
+    strokeBgOn: color("#e89f20"),
+    rounding: 20,
+    textSize: 20
+  });
+  d = createCheckbox("Reverse", 20,200);
+  d.setStyle(
+  {
+    fillBg: color("#70fdff"),
+     fillBgHover : color("#56eef0"),
+     fillBgActive: color("#20e5e8"),
+     fillCheck: color("#000000"),
+     fillCheckHover: color("#000000"),
+     fillCheckActive: color("##e89f20"),
+     strokeBg: color("#e89f20"),
+     rounding: 20
+  });
+  e = createSlider("Delay Time", 20,100,100,32);
+  e.setStyle(
+  {
+     fillBg: color("#70fdff"),
+     fillBgHover : color("#56eef0"),
+     fillBgActive: color("#20e5e8"),
+     fillTrack: color("#e89f20"),
+     fillTrackHover: color("#000000"),
+     fillTrackActive: color("##e89f20"),
+     strokeBg: color("#e89f20"),
+     rounding: 20,
+     textSize: 20
+  });
+  f = createSlider("Decay Rate", 20,150,100,32);
+  f.setStyle(
+  {
+     fillBg: color("#70fdff"),
+     fillBgHover : color("#56eef0"),
+     fillBgActive: color("#20e5e8"),
+     fillTrack: color("#e89f20"),
+     fillTrackHover: color("#e89f20"),
+     fillTrackActive: color("#e89f20"),
+     strokeBg: color("#e89f20"),
+     rounding: 20,
+     textSize: 20
+  });
+  // Delay
+  del = createToggle("Delay", 10,250);
+  del.setStyle(
+  {
+    fillBgOn: color("#1cbd37"),
+    fillBgOff: color("#0f7520"),
+    fillBgHover : color("#2bbd44"),
+    fillBgActive: color("#37bd4e"),
+    fillLabel: color("#000000"),
+    fillLabelHover: color("#000000"),
+    fillLabelActive: color("#000000"),
+    strokeBgOn: color("#b03f0e"),
+    rounding: 20,
+    textSize: 20
+  });
+  dell = createSlider("Delay Time", 20,300,100,32);
+  dell.setStyle(
+  {
+     fillBg: color("#1cbd37"),
+     fillBgHover : color("#32c74b"),
+     fillBgActive: color("#42c758"),
+     fillTrack: color("#bd4c1a"),
+     fillTrackHover: color("#c75f32"),
+     fillTrackActive: color("#8c330d"),
+     strokeBg: color("#b03f0e"),
+     rounding: 20,
+     textSize: 20
+  });
+  i = createSlider("FeedBack", 20,350,100,32);
+  i.setStyle(
+  {
+     fillBg: color("#1cbd37"),
+     fillBgHover : color("#32c74b"),
+     fillBgActive: color("#42c758"),
+     fillTrack: color("#bd4c1a"),
+     fillTrackHover: color("#c75f32"),
+     fillTrackActive: color("#8c330d"),
+     strokeBg: color("#b03f0e"),
+     rounding: 20,
+     textSize: 20
+  });
+  // Distortion
+  g = createToggle("Distortion", 10,450);
+  g.setStyle(
+  {
+    fillBgOn: color("#b81212"),
+    fillBgOff: color("#871616"),
+    fillBgHover : color("#912d2d"),
+    fillBgActive: color("#b34444"),
+    fillLabel: color("#000000"),
+    fillLabelHover: color("#000000"),
+    fillLabelActive: color("#000000"),
+    strokeBgOn: color("#a3710d"),
+    rounding: 20,
+    textSize: 20
+  });
+  h = createSlider("DriveAmount", 20,500,100,32);
+  h.setStyle(
+  {
+     fillBg: color("#b81212"),
+     fillBgHover : color("#a13d30"),
+     fillBgActive: color("#b0483a"),
+     fillTrack: color("#a3710d"),
+     fillTrackHover: color("#c75f32"),
+     fillTrackActive: color("#8c330d"),
+     strokeBg: color("#a3710d"),
+     rounding: 20,
+     textSize: 20
+  });
+  //Filter
+  k = createToggle("Filter", 10, 600);
+  k.setStyle({
+    rounding: 20,
+    fillBg: color("#653ab0"),
+    fillBgHover: color("#5c3d94"),
+    fillBgActive: color("#37186e"),
+    strokeBg: color("#b84c16"),
+  });
+  // Pannner
+  l = createJoystick("Panning", 10, 700, 125,125);
+  l.setStyle({
+    rounding: 20,
+    fillBg: color("#8f470d"),
+    fillBgHover: color("#8f470d"),
+    fillBgActive: color("#8f470d"),
+    fillTrack: color("#aa5cd1"),
+    fillTrackHover: color("#8d3cb5"),
+    fillTrackActive: color("#aa5cd1"),
+  });
+}
+// Instances
+function InstancingEffects()
+  {
+    reverb = new p5.Reverb();
+    delay = new p5.Delay();
+    delay.setType('pingPong');
+    filter = new p5.Filter(['highpass']);
+    distortion = new p5.Distortion(amount, over);
+    panner = new p5.Panner3D();
+    mic = new p5.AudioIn();  
+}
+//Verb Funcs
+function Verb()
+{
+  if (playing == true && rverbPlaying == true)
+  {
+    if (e.isChanged)
+    {
+      x = e.val;
+      x = map(0,1,0,10);
+      reverb.set([x],[y],[z]);
+      
+    }
+    if (f.isChanged)
+    {
+      y = f.val;
+      y = map (0,1,0,100);
+      reverb.set([x],[y],[z]);
+    }
+    if (d.isPressed)
+    {
+      z = d.val;
+      reverb.set([x],[y],[z]);
+    }
+  }
+  reverb.connect();
+  reverb.process(sound);
+  rverbPlaying = true; 
+}
+function DiscVerb()
+{
+  reverb.disconnect();
+  rverbPlaying = false;
+}
+// Dist Funcs
+function Dist()
+{
+  if (playing == true && distPlaying == true)
+  {    
+    if (h.isChanged)
+    {
+      // let mount;
+      amount = h.val;
+    }
+  }
+  distortion.connect();
+  distortion.process(sound, [amount = h.val], [over = '2x']);
+  distPlaying = true;
+}
+function QuitDistortion()
+{
+  distortion.disconnect();
+  distPlaying = false;
+}
+// Delay Funcs
+function HandleDealy(dt, feedback)
+{
+  delay.connect();
+  delay.process(sound, dt, feedback, 2000);
+  delayPlaying = true;
+}
+function QuitDelay()
+{
+  delay.disconnect();
+  delayPlaying = false;
+}
+function HIghPass()
+{ 
+  filterFreq = 2000;
+  res = 10;     
+  filter.process(sound, [filterFreq], [res]);
+}
+
+
+
+function touchMoved() {
+  // do some stuff
+  return false;
+}
